@@ -1,0 +1,42 @@
+Test
+
+import talib
+
+def initialize(context):
+    context.spy = sid(8554)
+    schedule_function(ma_crossover_handling,
+                      date_rules.every_day(),
+                      time_rules.market_open(hours=1))
+    
+def ma_crossover_handling(context,data):
+    hist = data.history(context.spy, 'price', 50, '1d')
+    log.info(hist)
+    
+    ema_short = talib.EMA(hist, timeperiod=10) 
+    ema_long = talib.EMA(hist, timeperiod=50) 
+    sma_50 = hist.mean()
+    sma_20 = hist[-20:].mean()
+    emash = ema_short[-1]
+    emaln = ema_long[-1] 
+      
+    open_orders = get_open_orders()
+    
+    if (emash >  emaln):
+       if context.spy not in open_orders:
+            order_target_percent(context.spy, 1.0)
+    elif (emash <  emaln): 
+       if context.spy not in open_orders:
+            order_target_percent(context.spy, 0)
+    
+    record(short_ema = emash, long_ema = emaln)
+
+
+    
+    # if sma_20 > sma_50:
+    #     if context.spy not in open_orders:
+    #         order_target_percent(context.spy, 1.0)
+    # elif sma_50 > sma_20:
+    #     if context.spy not in open_orders:
+    #         order_target_percent(context.spy, 0)
+            
+    record(leverage = context.account.leverage)
