@@ -1,5 +1,3 @@
-Test
-
 import talib
 
 def initialize(context):
@@ -9,26 +7,33 @@ def initialize(context):
                       time_rules.market_open(hours=1))
     
 def ma_crossover_handling(context,data):
-    hist = data.history(context.spy, 'price', 50, '1d')
-    log.info(hist)
+    bar_interval = '1d' 
+    #time period
+    #3，5，8，10，12，15
+    #30，35，40，45，50，55
+    slow_ema_length = 65
+    fast_ema_length = 10  
     
-    ema_short = talib.EMA(hist, timeperiod=10) 
-    ema_long = talib.EMA(hist, timeperiod=50) 
-    sma_50 = hist.mean()
-    sma_20 = hist[-20:].mean()
-    emash = ema_short[-1]
-    emaln = ema_long[-1] 
+    bar_count_1 = 1000  # <- this valoe should be at least 5 times more then slow_ema_length 
+    
+    hist = data.history(context.spy, 'price', bar_count_1, '1d')
+    
+    slow_ema_1 = talib.EMA(hist, slow_ema_length) 
+    fast_ema_1 = talib.EMA(hist, fast_ema_length)
+    
+    emaSlow = slow_ema_1[-1]
+    emaFast = fast_ema_1[-1]
       
     open_orders = get_open_orders()
     
-    if (emash >  emaln):
+    if (emaFast >  emaSlow):
        if context.spy not in open_orders:
             order_target_percent(context.spy, 1.0)
-    elif (emash <  emaln): 
+    elif (emaFast <  emaSlow): 
        if context.spy not in open_orders:
             order_target_percent(context.spy, 0)
     
-    record(short_ema = emash, long_ema = emaln)
+    record(fast_ema = emaFast, slow_ema = emaSlow)
 
 
     
