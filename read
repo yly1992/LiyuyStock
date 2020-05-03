@@ -9,39 +9,68 @@ def initialize(context):
 def ma_crossover_handling(context,data):
     bar_interval = '1d' 
     #time period
-    #3，5，8，10，12，15
-    #30，35，40，45，50，55
-    slow_ema_length = 65
-    fast_ema_length = 10  
+    #Fast Group 3，5，8，10，12，15
+    ema_length_3 = 3
+    ema_length_5 = 5
+    ema_length_8 = 8
+    ema_length_10 = 10
+    ema_length_12= 12
+    ema_length_15 = 15
+
+    #Slow Group 30，35，40，45，50，55
+    ema_length_30 = 30
+    ema_length_35 = 35
+    ema_length_40 = 40
+    ema_length_45 = 45
+    ema_length_50 = 50
+    ema_length_55 = 55
+
     
     bar_count_1 = 1000  # <- this valoe should be at least 5 times more then slow_ema_length 
     
     hist = data.history(context.spy, 'price', bar_count_1, '1d')
+    yesterday_close = hist[-2]
+    fast_ema_3 = talib.EMA(hist, ema_length_3)
+    fast_ema_5 = talib.EMA(hist, ema_length_5)
+    fast_ema_8 = talib.EMA(hist, ema_length_8)
+    fast_ema_10 = talib.EMA(hist, ema_length_10)
+    fast_ema_12 = talib.EMA(hist, ema_length_12)
+    fast_ema_15 = talib.EMA(hist, ema_length_15)
+
+    slow_ema_30 = talib.EMA(hist, ema_length_30)
+    slow_ema_35 = talib.EMA(hist, ema_length_35)
+    slow_ema_40 = talib.EMA(hist, ema_length_40)
+    slow_ema_45 = talib.EMA(hist, ema_length_45)
+    slow_ema_50 = talib.EMA(hist, ema_length_50)
+    slow_ema_55 = talib.EMA(hist, ema_length_55)
     
-    slow_ema_1 = talib.EMA(hist, slow_ema_length) 
-    fast_ema_1 = talib.EMA(hist, fast_ema_length)
-    
-    emaSlow = slow_ema_1[-1]
-    emaFast = fast_ema_1[-1]
-      
+    ema3 = fast_ema_3[-1]
+    ema5 = fast_ema_5[-1]
+    ema8 = fast_ema_8[-1]  
+    ema10 = fast_ema_10[-1]
+    ema12 = fast_ema_12[-1]
+    ema15 = fast_ema_15[-1]
+
+    ema30 = slow_ema_30[-1]
+    ema35 = slow_ema_35[-1]
+    ema40 = slow_ema_40[-1]
+    ema45 = slow_ema_45[-1]
+    ema50 = slow_ema_50[-1]
+    ema55 = slow_ema_55[-1]
+
     open_orders = get_open_orders()
-    
-    if (emaFast >  emaSlow):
-       if context.spy not in open_orders:
+
+    if yesterday_close > ema3 and yesterday_close > ema55 and ema3 > ema55:
+        if context.spy not in open_orders:
             order_target_percent(context.spy, 1.0)
-    elif (emaFast <  emaSlow): 
-       if context.spy not in open_orders:
+    elif yesterday_close < ema3 and yesterday_close < ema55 and ema3 < ema55: 
+        if context.spy not in open_orders:
             order_target_percent(context.spy, 0)
     
-    record(fast_ema = emaFast, slow_ema = emaSlow)
-
-
     
-    # if sma_20 > sma_50:
-    #     if context.spy not in open_orders:
-    #         order_target_percent(context.spy, 1.0)
-    # elif sma_50 > sma_20:
-    #     if context.spy not in open_orders:
-    #         order_target_percent(context.spy, 0)
-            
-    record(leverage = context.account.leverage)
+    record(fast_ema_3 = ema3, 
+           fast_ema_5 = ema5, 
+           fast_ema_8 = ema8, 
+           fast_ema_10 = ema10, 
+           fast_ema_12 = ema12
+    )
