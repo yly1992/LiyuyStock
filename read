@@ -63,10 +63,15 @@ def ma_crossover_handling(context,data):
     if yesterday_close > ema3 and yesterday_close > ema55 and ema3 > ema55:
         if context.spy not in open_orders:
             order_target_percent(context.spy, 1.0)
-    elif yesterday_close < ema3 and yesterday_close < ema55 and ema3 < ema55: 
+    elif yesterday_close < ema3 and yesterday_close < ema55 and ema3 < ema55:
         if context.spy not in open_orders:
-            order_target_percent(context.spy, 0)
-    
+            order_target_percent(context.spy, 1.0)
+    elif yesterday_close > ema3 and yesterday_close < ema55 and ema3 < ema55:
+        if context.spy not in open_orders:
+            order_target_percent(context.spy, 0.4)
+    elif yesterday_close < ema3 and yesterday_close > ema55 and ema3 > ema55:
+        if context.spy not in open_orders:
+            order_target_percent(context.spy, 0.4)
     
     record(fast_ema_3 = ema3, 
            fast_ema_5 = ema5, 
