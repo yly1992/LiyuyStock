@@ -1,0 +1,55 @@
+import numpy as np
+import math
+import datetime
+import pandas as pd
+import talib
+
+#for calculating stochastic indicator
+def getStoch(H, L, C):
+    return talib.STOCH(H, L, C, 
+                       fastk_period=10, 
+                       slowk_period=2, 
+                       slowd_period=2)
+ 
+def initialize(context):
+
+    context.ticker = sid(8554)
+    
+    #set custom benchmark to be the stock being traded
+    #so we can compare whether simply holding the stock is better than the strategy
+    set_benchmark(context.ticker)
+
+    context.max_notional = 50000
+    context.min_notional = 0
+    context.prices = []
+
+def handle_data(context, data):
+    H = history(50, '1d', 'high')[context.ticker]
+    L = history(50, '1d', 'low')[context.ticker]
+    C = history(50, '1d', 'close_price')[context.ticker]
+    #calculate stochastic indicator
+    slowk, slowd  = getStoch(H, L, C)
+    k_val    = slowk[-1]
+    d_val = slowd[-1]
+    
+    #plot stochastic indicator
+    record(K=k_val,D=d_val,mid=50,top=80,btm=20)
+
+    # We need a variable for the current price of the security to compare to
+    # the average.
+    price = data[context.ticker].price
+       
+    # Another powerful built-in feature of the Quantopian backtester is the
+    # portfolio object.  The portfolio ojbect tracks your positions, cash,
+    # cost basis of specific holdings, and more.  In this line, we calculate
+    # how long or short our position is at this minute.   
+    notional = context.portfolio.positions[context.ticker].amount * price
+    c_balance = context.portfolio.cash    
+    
+    #since stochastic data is not continuous this if check works around +/- 5% of the k and d signal intercept
+    if k_val > 0.95*d_val and k_val < 1.05*d_val and notional > context.min_notional and k_val >= 80:
+        print("Selling shares at K: %s, D: %s" % (k_val, d_val))
+        order_value(context.ticker,-notional)
+    if k_val > 0.95*d_val and k_val < 1.05*d_val and notional < context.max_notional and k_val <= 30:
+        print("Buying shares at K: %s, D: %s" % (k_val, d_val))
+        order_value(context.ticker,+c_balance)
